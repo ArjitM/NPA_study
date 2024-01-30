@@ -112,54 +112,86 @@ adf = df.groupby("pt_study_id").first()
 # COL_ORDER = {v: k for k,v in enumerate(col_names)}
 # dt = df[sorted(set(col_names) - set(tumor_vars), key=COL_ORDER.get)].merge(tdf, on="pt_study_id", how='inner')
 
-def do_anova(var_head, min_size=30):
+def do_anova(var_head, outputs, min_size=30):
 
+    outputs = list(outputs)
     categories = []
     for col in col_names:
         M = re.match("{0}_*\d+".format(var_head), col)
         if M:
-            if len(adf.loc[adf[M.string] == 1]) > min_size:
+            if len(adf.loc[adf[M.string] == 1][outputs].dropna()) > min_size:
                 categories.append(M.string)
+
     cat_num = len(categories)
+
+    if cat_num < 2:
+        print("{0} ANOVA not performed. Insuffucient categories.".format(var_head))
+        return
+
+    labeller = PREFIX_TO_LABELS.get(var_head)
 
     with open("results/{0}_anova_tHSD.txt".format(var_head), 'w') as outfile:
 
-        for output in P29_COMPONENTS.get("OUTPUTS"):
-            to = []
+        num_out = len(outputs)
 
+        fig, ax = plt.subplots(num_out, 1, figsize=(6.4, 4.8 * num_out), sharex="all")
+        plt.yticks()
+
+        lgnd_txt = ""
+        outfile.write(var_head + "\n")
+        outfile.write("=========== Key ===========\n")
+        for k, C in enumerate(categories):
+            lab = labeller.get(int(re.match("{0}_+(\d+)".format(var_head), C).group(1)))
+            outfile.write("Group {0}: \t  {1}\n".format(k, lab))
+            lgnd_txt = lgnd_txt + "Group {0}: {1}\n".format(k, lab)
+        outfile.write('\n')
+
+        # plt.subplots_adjust(left=0.2)
+        fig.text(0.5, 0, lgnd_txt, transform=fig.transFigure)
+
+        for out_i, output in enumerate(outputs):
+            to = []
             for C in categories:
                 to.append(adf.loc[adf[C] == 1][output].dropna().to_numpy())
 
-            _, p = stats.f_oneway(*to)
+            f, p = stats.f_oneway(*to)
             outfile.write("\n\n##################################################\n")
-            outfile.write(output + "\np = " + str(p))
+            outfile.write(output + "\n\n")
+            outfile.write("p = {0}\nf = {1}".format(p, f))
             outfile.write("\n")
 
             if p < 1e-3:
-
                 Pij = stats.tukey_hsd(*to).pvalue
-                print("=========== P Values Tukey HSD ===========")
+                outfile.write("=========== P Values Tukey HSD ===========\n")
                 for i in range(cat_num):
                     for j in range(i + 1, cat_num):
                         outfile.write("({0}, {1}): {2}\n".format(i+1, j+1, str(Pij[i][j])))
                 outfile.write('\n')
 
             outfile.write('=========== Summary ===========\n')
-            [outfile.write("Group: {0}\nMean: {1}\nStd: {2}\n".format(i, np.mean(v), np.std(v))) for i, v in enumerate(to)]
+            [outfile.write("Group: {0}\nMean: {1}\nStd: {2}\n".format(k, np.mean(v), np.std(v)))
+             for k, v in enumerate(to)]
             outfile.write('\n')
 
-            label_data = {}
-            labeller = PREFIX_TO_LABELS.get(var_head)
-            for C, data in zip(categories, to):
-                num = int(re.match("{0}_+(\d+)".format(var_head), C).group(1))
-                label_data[labeller.get(num)] = data
+            # label_data = {}
+            # for C, data in zip(categories, to):
+            #     num = int(re.match("{0}_+(\d+)".format(var_head), C).group(1))
+            #     label_data[labeller.get(num)] = data
 
-            plt.figure()
-            sns.boxenplot(data=label_data, color='black')
-            plt.savefig("results/{0}_{1}.jpg".format(var_head, output))
+            sns.pointplot(ax=ax[out_i], data={k: v for k, v in enumerate(to)}, color='black', estimator='mean',
+                          errorbar=("ci", 95), linestyle='none')
+            ax[out_i].set_title(output)
+            ax[out_i].set_ylim(ymin=0, ymax=MAX_VAL)
+            # order=sorted(label_data.keys(), key=lambda k: np.mean(label_data.get(k)), reverse=True)) # legend='full')
+            # plt.tight_layout()
+
+        plt.savefig("results/{0}.jpg".format(var_head))
+        plt.close()
 
 
-do_anova("tumor_laterality")
+# do_anova("tumor_loc")
+for var in PREFIX_TO_LABELS.keys():
+    do_anova(var, P29_COMPONENTS.get("OUTPUTS"))
 
 
 
