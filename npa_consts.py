@@ -136,6 +136,27 @@ P29_COMPONENTS["OUTPUTS"] = [
     'p29_sd_raw',
     'p29_social_raw',
     'p29_pain_raw',
+    'p29_global07',
+]
+P29_COMPONENTS["OUTPUTS_t"] = [
+    'p29_pf_t_score',
+    'p29_anxiety_t_score',
+    'p29_depression_t_score',
+    'p29_fatigue_t_score',
+    'p29_sd_t_score',
+    'p29_social_t_score',
+    'p29_pain_t_score',
+    'p29_pain_int_t_score',
+]
+P29_COMPONENTS["OUTPUT_MAX"] = [
+    20,
+    20,
+    20,
+    20,
+    20,
+    20,
+    20,
+    10,
 ]
 P29_COMPONENTS["OUTPUTS_POS"] = [
     'p29_anxiety_raw',
@@ -468,6 +489,75 @@ PREFIX_TO_LABELS = {
     "reason_readmit": REASON_READMIT_LABELS,
     "metastatic_no": NON_METASTATIC_LABELS,
     "metastatic_yes": METASTATIC_LABELS,
+    "metastatic": {0: "No", 1: "Yes"},
+    # "chemo": {0: "No", 1: "Yes"},
+    "resection_type": {1: "Biopsy", 2: "Sub-total resection", 3: "Gross total resection"},
+    "antiepi_preop": {0: "No", 1: "Yes"},
+    "resection_lesions": dict(),
+    "pgender": {1: "Male", 2: "Female", 3: "Unknown"},
+    "ptethnicity": {1: "Hispanic or Latino", 2: "Not Hispanic or Latino", 3: "Prefer not to answer" },
+    "ptethnicity_2": { 1: "Single", 2: "Married / Domestic Partnership", 3: "Widowed", 4: "Divorced/Separated",
+                       30: "Prefer not to answer"},
+    "prace": {
+        1: "American Indian or Alaska Native",
+        2: "Asian",
+        3: "Black or African American",
+        4: "Native Hawaiian or Other Pacific Islander",
+        5: "White",
+        6: "Other",
+        7: "Prefer not to answer",
+    },
+    "pt_education_level": {
+        1: "Less than High School",
+        2: "High School Diploma or GED",
+        3: "Two-Year College Degree",
+        4: "Four-Year College Degree",
+        5: "Post-College",
+        6: "Prefer not to answer",
+    },
+    "employment": {
+        1: "Employed and currently working",
+        2: "Employed but not working (on short- term disability or on leave)",
+        3: "Unemployed",
+        4: "Attending School",
+    },
+    "insurance1": {
+        1: "Uninsured",
+        2: "Medicare",
+        3: "Medicaid",
+        4: "VA/Government",
+        5: "Private",
+        6: "Information not available",
+    },
+}
+
+
+
+
+PREFIX_IS_ONE_HOT = {
+    "approach": True,
+    "tumor_laterality": True,
+    "tumor_loc": True,
+    "preoptx_type": True,
+    "inpatient_complications": True,
+    "discharge_disp": True,
+    "fup_symptoms": True,
+    "bsl_symptoms": True,
+    "reason_readmit": True,
+    "metastatic_no": False,
+    "metastatic_yes": False,
+    "metastatic": False,
+    # "chemo": False,
+    "resection_type": False,
+    "antiepi_preop": False,
+    "resection_lesions": False,
+    "pgender": False,
+    "ptethnicity": False,
+    "ptethnicity_2": False,
+    "prace": True,
+    "pt_education_level": False,
+    "employment": False,
+    "insurance1": False,
 }
 
 
